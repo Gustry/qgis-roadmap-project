@@ -4,12 +4,14 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsFeature,
     QgsGeometry,
+    QgsLayerTreeLayer,
     QgsPoint,
     QgsPointXY,
     QgsProject,
     QgsVectorLayer,
     edit,
 )
+from qgis.utils import iface
 
 FOLDER = '/home/etienne/dev/other/qgis-roadmap'
 RELEASES = [
@@ -116,7 +118,7 @@ with edit(axes_layer):
 # renderer = axes_layer.renderer().setSymbol(line_symbol)
 axes_layer.loadNamedStyle(
     os.path.join(FOLDER, 'qml', 'axes.qml'))
-QgsProject.instance().addMapLayer(axes_layer)
+QgsProject.instance().addMapLayer(axes_layer, False)
 
 
 # Releases
@@ -128,7 +130,7 @@ def create_release_as_lines():
         "field=name:string(20)&"
         "field=version:string(20)&"
         "field=ltr:bool&"
-        "index=yes", "Releases", "memory")
+        "index=yes", "Release lines", "memory")
     with edit(releases_line_layer):
         for i, release in enumerate(RELEASES):
             int_rel = i + 1
@@ -141,10 +143,11 @@ def create_release_as_lines():
             releases_line_layer.addFeature(feat)
     releases_line_layer.loadNamedStyle(
         os.path.join(FOLDER, 'qml', 'release_lines.qml'))
-    QgsProject.instance().addMapLayer(releases_line_layer)
+    QgsProject.instance().addMapLayer(releases_line_layer, False)
+    return releases_line_layer
 
 
-create_release_as_lines()
+releases_line_layer = create_release_as_lines()
 
 
 def create_release_as_points():
@@ -157,10 +160,10 @@ def create_release_as_points():
         "field=ltr:bool&"
         "field=start:date&"
         "field=end:date&"
-        "index=yes", "Releases", "memory")
+        "index=yes", "Release points", "memory")
     releases_point_layer.loadNamedStyle(
         os.path.join(FOLDER, 'qml', 'release_points.qml'))
-    QgsProject.instance().addMapLayer(releases_point_layer)
+    QgsProject.instance().addMapLayer(releases_point_layer, False)
     for i, release in enumerate(RELEASES):
         with edit(releases_point_layer):
             int_rel = i + 1
@@ -170,9 +173,10 @@ def create_release_as_points():
                 [int_rel, release['name'], release['version'], release['ltr'], release['start'], release['end']])
             feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(start_x * 100, start_x * 100)))
             releases_point_layer.addFeature(feat)
+    return releases_point_layer
 
 
-create_release_as_points()
+releases_point_layer = create_release_as_points()
 
 
 # Current date
@@ -182,7 +186,7 @@ def create_current_date():
         "crs=epsg:3857&"
         "field=id:integer&"
         "index=yes", "Current date", "memory")
-    QgsProject.instance().addMapLayer(current_date_layer)
+    QgsProject.instance().addMapLayer(current_date_layer, False)
     current_date_layer.loadNamedStyle(
         os.path.join(FOLDER, 'qml', 'current_date.qml'))
     with edit(current_date_layer):
@@ -190,9 +194,10 @@ def create_current_date():
         feat.setAttributes([1])
         feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(((SIZE + 5) / 2) * 100, -100)))
         current_date_layer.addFeature(feat)
+    return current_date_layer
 
 
-create_current_date()
+current_date_layer = create_current_date()
 
 
 # Bar date
@@ -202,7 +207,7 @@ def create_bar_date():
         "crs=epsg:3857&"
         "field=id:integer&"
         "index=yes", "Bar", "memory")
-    QgsProject.instance().addMapLayer(bar_today_layer)
+    QgsProject.instance().addMapLayer(bar_today_layer, False)
     bar_today_layer.loadNamedStyle(
         os.path.join(FOLDER, 'qml', 'bar.qml'))
     with edit(bar_today_layer):
@@ -210,6 +215,15 @@ def create_bar_date():
         feat.setAttributes([1])
         feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(0, 0)))
         bar_today_layer.addFeature(feat)
+    return bar_today_layer
 
 
-create_bar_date()
+bar_today_layer = create_bar_date()
+
+# Insert in the correct order
+layerTree = iface.layerTreeCanvasBridge().rootGroup()
+layerTree.insertChildNode(-1, QgsLayerTreeLayer(current_date_layer))
+layerTree.insertChildNode(-1, QgsLayerTreeLayer(releases_point_layer))
+layerTree.insertChildNode(-1, QgsLayerTreeLayer(axes_layer))
+layerTree.insertChildNode(-1, QgsLayerTreeLayer(releases_line_layer))
+layerTree.insertChildNode(-1, QgsLayerTreeLayer(bar_today_layer))
