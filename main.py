@@ -1,5 +1,7 @@
 import os
 
+from pathlib import Path
+
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsFeature,
@@ -13,7 +15,11 @@ from qgis.core import (
 )
 from qgis.utils import iface
 
-FOLDER = '/home/etienne/dev/other/qgis-roadmap'
+FOLDER = '/home/etienne/dev/other/qgis-roadmap-project'
+
+if not Path(FOLDER).exists():
+    print(f"The folder {FOLDER} does not exist.")
+
 RELEASES = [
     {
         'name': 'Girona',
@@ -64,11 +70,29 @@ RELEASES = [
         'start': '2020-06-19',
         'end': '2020-10-22',
     }, {
-        'name': 'Next version',
+        'name': 'Hannover',
         'version': '3.16',
         'ltr': True,
         'start': '2020-10-23',
-        'end': '2022-02-01',  # Unknown
+        'end': '2022-01-14',
+    }, {
+        'name': 'Zürich',
+        'version': '3.18',
+        'ltr': False,
+        'start': '2021-02-19',
+        'end': '2021-05-14',
+    }, {
+        'name': 'Odense',
+        'version': '3.20',
+        'ltr': False,
+        'start': '2021-06-18',
+        'end': '2021-09-10',
+    }, {
+        'name': 'Białowieża',
+        'version': '3.22',
+        'ltr': True,
+        'start': '2021-10-22',
+        'end': '2023-01-13',
     }
 ]
 SIZE = len(RELEASES) + 2
